@@ -1,0 +1,39 @@
+resource "aws_vpc" "vpc-dev" {
+  cidr_block = var.cidr
+  tags = {
+    "Name" = "vpc-dev"
+
+  }
+}
+
+locals {
+    env = "${terraform.workspace}"
+
+    tagnames = {
+      "default" = ["default-dev-ins1","default-dev-ins2"]
+      "stage" = ["default-stage-ins1","default-stage-ins2"]
+      "prod" = ["default-prod-ins1","default-prod-ins2", "default-prod-ins3"]
+    }
+
+    defaulttags = {
+      "Name" = "kuna_lob"
+    }
+
+}
+
+resource "aws_instance" "kuna-ec2" {
+  count = length(local.tagnames[local.env])
+  ami = "ami-090fa75af13c156b4"
+  instance_type = "t2.micro"
+#  tags = merge(${local.env}-${count.index}, {"Name": "kuna"})
+  tags = {
+    Name = local.tagnames[local.env][count.index]
+  }
+}
+#
+#output "instance_details" {
+#  value = aws_instance.kuna-ec2[*].arn
+#}
+#
+output "tag_names" {
+  value = aws_instance.kuna-ec2[*].tags["Name"]
