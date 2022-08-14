@@ -1,0 +1,44 @@
+variable "kuna_user_name" {
+  type = list(string)
+  default = ["kuna-one", "kuna-onemore"]
+}
+
+
+resource "aws_iam_user" "kuna-users" {
+  for_each = toset(var.kuna_user_name)
+  name = each.value
+}
+
+output "all_users" {
+  value = [for name in var.kuna_user_name: "${name} is getting created"]
+}
+
+##########################################################################################
+
+variable "kuna_instance_name" {
+  type = string
+  default = "four"
+}
+
+
+resource "aws_instance" "kuna-ec2" {
+  provider = aws.region-2
+  ami = data.aws_region.region_name.name == "us-east-1" ? "ami-090fa75af13c156b4": "ami-08df646e18b182346"
+  instance_type = "t2.micro"
+
+  tags = {
+    name = length(var.kuna_instance_name) < 5 ? "lessthanfive" : var.kuna_instance_name
+  }
+}
+
+data "aws_region" "region_name" {
+  provider = aws.region-2
+}
+
+output "instance_details" {
+  value = aws_instance.kuna-ec2.arn
+}
+
+output "selected_region" {
+  value = data.aws_region.region_name.name
+}
