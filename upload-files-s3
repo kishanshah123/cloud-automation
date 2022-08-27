@@ -1,0 +1,52 @@
+import boto3
+import os
+
+class AwsBucketUpload:
+    def __init__(self, filepath=None):
+        self.filepath = filepath
+        self.client = self.initclient()
+
+    def initclient(self):
+        client = boto3.client('s3')
+        return client
+
+    def uploadobject(self):
+        if self.filepath is None:
+            files = self.scan_dir()
+            for each_document in files:
+                name_split = each_document.split("_")[0]
+                response = self.client.put_object(
+                    Body= "files" + "/" + each_document,
+                    Bucket='test-bucket-cka',
+                    Key=name_split + "/" + each_document,
+                )
+                print(response)
+        else:
+            self.chk_file()
+            response = self.client.put_object(
+                Body=self.filepath,
+                Bucket='test-bucket-cka',
+                Key='testcka/seconddocument',
+            )
+            print(response)
+        return
+
+    def chk_file(self):
+        if os.path.isfile(self.filepath):
+            print("file exists")
+        else:
+            raise FileNotFoundError("Given {} does not exist".format(self.filepath))
+
+    def scan_dir(self):
+        all_files = os.listdir("files")
+        return all_files
+
+# try:
+#     doc_upload = AwsBucketUpload("test-file10.txt")
+#     response = doc_upload.uploadobject()
+#     print(response)
+# except Exception as e:
+#     print(f"Failed to upload with reason {str(e)}")
+
+docupload = AwsBucketUpload()
+response = docupload.uploadobject()
